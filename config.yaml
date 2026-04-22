@@ -1,0 +1,50 @@
+model:
+  base_model: "mistralai/Mistral-7B-v0.1"
+  max_seq_length: 2048
+  torch_dtype: "float16"
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"]
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+sft:
+  dataset_path: "data/processed/sft_train.jsonl"
+  val_path: "data/processed/sft_val.jsonl"
+  output_dir: "models/sft_model"
+  epochs: 3
+  batch_size: 4
+  grad_accumulation: 4
+  learning_rate: 2.0e-4
+  warmup_ratio: 0.03
+  lr_scheduler: "cosine"
+  save_steps: 100
+  eval_steps: 100
+  logging_steps: 10
+
+dpo:
+  sft_model_path: "models/sft_model"
+  dataset_path: "data/processed/dpo_train.jsonl"
+  val_path: "data/processed/dpo_val.jsonl"
+  output_dir: "models/dpo_model"
+  beta: 0.1
+  epochs: 1
+  batch_size: 2
+  grad_accumulation: 8
+  learning_rate: 5.0e-5
+  max_prompt_length: 512
+  max_length: 1024
+
+eval:
+  test_path: "data/processed/test_set.jsonl"
+  results_dir: "evals/results"
+  judge_model: "llama-3.3-70b-versatile"
+  n_judge_samples: 100
+  batch_size: 8
+
+wandb:
+  project: "medical-llm-finetune"
+  entity: "your-username"
