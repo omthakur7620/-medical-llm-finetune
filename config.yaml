@@ -16,8 +16,8 @@ sft:
   val_path: "data/processed/sft_val.jsonl"
   output_dir: "models/sft_model"
   epochs: 3
-  batch_size: 4
-  grad_accumulation: 4
+  batch_size: 1
+  grad_accumulation: 16
   learning_rate: 2.0e-4
   warmup_ratio: 0.03
   lr_scheduler: "cosine"

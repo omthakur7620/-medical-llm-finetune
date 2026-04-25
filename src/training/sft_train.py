@@ -39,6 +39,9 @@ def to_hf_dataset(records: list[dict]) -> Dataset:
 # ── main training function ────────────────────────────────────────────────────
 
 def train(config_path: str = "config.yaml") -> None:
+    # ensure we always run from project root regardless of where script is called from
+    os.chdir(Path(__file__).resolve().parents[2])
+
     cfg       = load_config(config_path)
     model_cfg = cfg["model"]
     sft_cfg   = cfg["sft"]
@@ -78,6 +81,10 @@ def train(config_path: str = "config.yaml") -> None:
 
     print("\napplying LoRA adapters ...")
     model = apply_lora(model, cfg)
+
+    # required when using gradient checkpointing with PEFT/LoRA
+    model.enable_input_require_grads()
+
     params = count_parameters(model)
     print(f"  trainable: {params['trainable']:,}  ({params['trainable_pct']:.2f}%)")
 
@@ -103,12 +110,13 @@ def train(config_path: str = "config.yaml") -> None:
         save_steps                  = sft_cfg["save_steps"],
         eval_steps                  = sft_cfg["eval_steps"],
         logging_steps               = sft_cfg["logging_steps"],
-        eval_strategy               = "steps",
+        evaluation_strategy         = "steps",
         save_strategy               = "steps",
         load_best_model_at_end      = True,
         metric_for_best_model       = "eval_loss",
         greater_is_better           = False,
         fp16                        = torch.cuda.is_available(),
+        gradient_checkpointing      = True,
         bf16                        = False,
         report_to                   = "wandb" if use_wandb else "none",
         run_name                    = "sft-run",

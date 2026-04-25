@@ -52,6 +52,9 @@ def to_dpo_dataset(records: list[dict]) -> Dataset:
 # ── main training function ────────────────────────────────────────────────────
 
 def train(config_path: str = "config.yaml") -> None:
+    # ensure we always run from project root regardless of where script is called from
+    os.chdir(Path(__file__).resolve().parents[2])
+
     cfg       = load_config(config_path)
     model_cfg = cfg["model"]
     dpo_cfg   = cfg["dpo"]
